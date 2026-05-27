@@ -1,12 +1,3 @@
-/*
-
- *   ✅ 1. cadastrarAeroporto
- *   ✅ 2. cadastrarVoo
- *   🔲 3. removerVoo         
- *   🔲 4. listarVoosDeAeroporto 
- *   🔲 5. listarTrajetos     
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,7 +34,7 @@ GrafoAeroportos *criarGrafo(int capacidadeInicial) {
 
 void ApagarGrafo(GrafoAeroportos *g) {
     if (!g) return;
-    ApagarMatrizEsparsa(g->voos, liberarVoo); 
+    apagarMatrizEsparsa(g->voos, liberarVoo);
     free(g->aeroportos);
     free(g);
 }
@@ -103,7 +94,7 @@ int cadastrarAeroporto(GrafoAeroportos *g, const char *codigo, const char *cidad
 
     g->quantidade++;
 
-    printf("Aeroporto cadastrado: %s - %s (indice %d)\n", codigo, cidade, idx);
+    printf("  Aeroporto cadastrado: %s - %s (indice %d)\n", codigo, cidade, idx);
     return 1;
 }
 
@@ -186,7 +177,7 @@ int cadastrarVoo(GrafoAeroportos *g, const char *codigoOrigem, const char *codig
         return 0;
     }
 
-    printf(" Voo %d cadastrado: %s (%s) --> %s (%s)\n", numeroVoo, codigoOrigem,  g->aeroportos[idxOrigem].cidade, codigoDestino, g->aeroportos[idxDestino].cidade);
+    printf("  Voo %d cadastrado: %s (%s) --> %s (%s)\n", numeroVoo, codigoOrigem, g->aeroportos[idxOrigem].cidade, codigoDestino, g->aeroportos[idxDestino].cidade);
     return 1;
 }
 
@@ -203,9 +194,26 @@ int cadastrarVoo(GrafoAeroportos *g, const char *codigoOrigem, const char *codig
  *   - Se não encontrar em nenhuma linha: retornar 0
  * ═══════════════════════════════════════════════════════════════ */
 int removerVoo(GrafoAeroportos *g, int numeroVoo) {
-    /* TODO: Implementar a Operação 3 */
-    printf("[INFO] Operacao 3 (remover voo) ainda nao implementada.\n");
-    (void)g; (void)numeroVoo; /* suprime warnings de variavel nao usada */
+    if (!g) return 0;
+
+    for (int i = 0; i < g->quantidade; i++) {
+        NoMatriz *no = obterLinhaMatrizEsparsa(g->voos, i);
+        while (no) {
+            Voo *voo = (Voo *)no->dado;
+            if (voo && voo->numero == numeroVoo) {
+                int coluna = no->coluna;
+                Voo *removido = (Voo *)removerLinhaMatrizEsparsa(g->voos, i, coluna);
+                printf("  Voo %d removido: %s --> %s\n", numeroVoo,
+                       g->aeroportos[i].codigo,
+                       g->aeroportos[coluna].codigo);
+                free(removido);
+                return 1;
+            }
+            no = no->prox;
+        }
+    }
+
+    printf("  Voo %d nao encontrado.\n", numeroVoo);
     return 0;
 }
 
@@ -221,28 +229,79 @@ int removerVoo(GrafoAeroportos *g, int numeroVoo) {
  *       → ((Voo*)no->dado)->numero é o número do voo
  * ═══════════════════════════════════════════════════════════════ */
 void listarVoosDeAeroporto(GrafoAeroportos *g, const char *codigoOrigem) {
-    /* TODO: Implementar a Operação 4 */
-    printf("[INFO] Operacao 4 (listar voos) ainda nao implementada.\n");
-    (void)g; (void)codigoOrigem;
+    if (!g || !codigoOrigem) return;
+
+    int idx = buscarIndice(g, codigoOrigem);
+    if (idx == -1) {
+        printf("Aeroporto '%s' nao encontrado.\n", codigoOrigem);
+        return;
+    }
+
+    NoMatriz *no = obterLinhaMatrizEsparsa(g->voos, idx);
+    if (!no) {
+        printf("Nenhum voo saindo de %s.\n", codigoOrigem);
+        return;
+    }
+
+    printf("  Voos saindo de %s (%s):\n\n", codigoOrigem, g->aeroportos[idx].cidade);
+    while (no) {
+        Voo *voo = (Voo *)no->dado;
+        printf("    Voo %d --> %s (%s)\n",
+               voo->numero,
+               g->aeroportos[no->coluna].codigo,
+               g->aeroportos[no->coluna].cidade);
+        no = no->prox;
+    }
 }
 
-/* ═══════════════════════════════════════════════════════════════
- * OPERAÇÃO 5 — GA_listarTrajetos  [A IMPLEMENTAR]
- * ─────────────────────────────────────────────────────────────
- * DICA DE IMPLEMENTAÇÃO:
- *   - Usar DFS (Busca em Profundidade) recursiva
- *   - Manter um vetor booleano 'visitado[]' para evitar ciclos
- *   - Manter um vetor 'caminho[]' para registrar o trajeto atual
- *   - Quando chegar no destino: imprimir o caminho
- *   - Recursão: para cada voo que sai do aeroporto atual,
- *     se o destino não foi visitado, visitar e continuar
- * ═══════════════════════════════════════════════════════════════ */
+static void dfs(GrafoAeroportos *g, int atual, int destino,
+                int *visitado, int *caminho, int profundidade) {
+    visitado[atual] = 1;
+    caminho[profundidade] = atual;
+
+    if (atual == destino) {
+        printf("    ");
+        for (int i = 0; i <= profundidade; i++) {
+            printf("%s", g->aeroportos[caminho[i]].codigo);
+            if (i < profundidade) printf(" --> ");
+        }
+        printf("\n");
+    } else {
+        NoMatriz *no = obterLinhaMatrizEsparsa(g->voos, atual);
+        while (no) {
+            if (!visitado[no->coluna]) {
+                dfs(g, no->coluna, destino, visitado, caminho, profundidade + 1);
+            }
+            no = no->prox;
+        }
+    }
+
+    visitado[atual] = 0;
+}
+
 void listarTrajetos(GrafoAeroportos *g,
-                       const char *codigoOrigem,
-                       const char *codigoDestino) {
-    /* TODO: Implementar a Operação 5 */
-    printf("[INFO] Operacao 5 (listar trajetos) ainda nao implementada.\n");
-    (void)g; (void)codigoOrigem; (void)codigoDestino;
+                    const char *codigoOrigem,
+                    const char *codigoDestino) {
+    if (!g || !codigoOrigem || !codigoDestino) return;
+
+    int idxOrigem  = buscarIndice(g, codigoOrigem);
+    int idxDestino = buscarIndice(g, codigoDestino);
+
+    if (idxOrigem == -1) {
+        printf("Aeroporto '%s' nao encontrado.\n", codigoOrigem);
+        return;
+    }
+    if (idxDestino == -1) {
+        printf("Aeroporto '%s' nao encontrado.\n", codigoDestino);
+        return;
+    }
+
+    int visitado[g->quantidade];
+    int caminho[g->quantidade];
+    for (int i = 0; i < g->quantidade; i++) visitado[i] = 0;
+
+    printf("  Trajetos de %s para %s:\n\n", codigoOrigem, codigoDestino);
+    dfs(g, idxOrigem, idxDestino, visitado, caminho, 0);
 }
 
 /* ═══════════════════════════════════════════════════════════════

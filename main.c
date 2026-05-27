@@ -1,12 +1,3 @@
-/*
- * main.c
- *
- * Programa principal — Menu interativo para o sistema ANAC.
- *
- * Compilar com:
- *   gcc -Wall -o aeroportos main.c grafo_aeroportos.c matriz_esparsa.c
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,23 +29,25 @@ static void menuCadastrarAeroporto(GrafoAeroportos *g) {
 }
 
 static void menuCadastrarVoo(GrafoAeroportos *g) {
-    char origem[CODIGO_AEROPORTO_TAM];
-    char destino[CODIGO_AEROPORTO_TAM];
-    int  numero;
+    int idxOrigem, idxDestino, numero;
 
     printf("\n  Aeroportos cadastrados:\n");
     listarAeroportos(g);
 
-    lerString("\n  Codigo de origem:  ", origem, sizeof(origem));
-    lerString("  Codigo de destino: ", destino, sizeof(destino));
+    printf("\n  Indice de origem:  ");
+    if (scanf("%d", &idxOrigem) != 1 || idxOrigem < 0 || idxOrigem >= g->quantidade) {
+        printf("Indice invalido.\n"); limparBuffer(); return;
+    }
+    printf("  Indice de destino: ");
+    if (scanf("%d", &idxDestino) != 1 || idxDestino < 0 || idxDestino >= g->quantidade) {
+        printf("Indice invalido.\n"); limparBuffer(); return;
+    }
     printf("  Numero do voo:     ");
     if (scanf("%d", &numero) != 1) {
-        printf("Numero invalido.\n");
-        limparBuffer();
-        return;
+        printf("Numero invalido.\n"); limparBuffer(); return;
     }
     limparBuffer();
-    cadastrarVoo(g, origem, destino, numero);
+    cadastrarVoo(g, g->aeroportos[idxOrigem].codigo, g->aeroportos[idxDestino].codigo, numero);
 }
 
 static void menuRemoverVoo(GrafoAeroportos *g) {
@@ -70,21 +63,31 @@ static void menuRemoverVoo(GrafoAeroportos *g) {
 }
 
 static void menuListarVoos(GrafoAeroportos *g) {
-    char codigo[CODIGO_AEROPORTO_TAM];
+    int idx;
     printf("\n  Aeroportos cadastrados:\n");
     listarAeroportos(g);
-    lerString("\n  Codigo do aeroporto de origem: ", codigo, sizeof(codigo));
-    listarVoosDeAeroporto(g, codigo); /* Operação 4 — a implementar */
+    printf("\n  Indice do aeroporto de origem: ");
+    if (scanf("%d", &idx) != 1 || idx < 0 || idx >= g->quantidade) {
+        printf("Indice invalido.\n"); limparBuffer(); return;
+    }
+    limparBuffer();
+    listarVoosDeAeroporto(g, g->aeroportos[idx].codigo);
 }
 
 static void menuListarTrajetos(GrafoAeroportos *g) {
-    char origem[CODIGO_AEROPORTO_TAM];
-    char destino[CODIGO_AEROPORTO_TAM];
+    int idxOrigem, idxDestino;
     printf("\n  Aeroportos cadastrados:\n");
     listarAeroportos(g);
-    lerString("\n  Codigo de origem:  ", origem, sizeof(origem));
-    lerString("  Codigo de destino: ", destino, sizeof(destino));
-    listarTrajetos(g, origem, destino); /* Operação 5 — a implementar */
+    printf("\n  Indice de origem:  ");
+    if (scanf("%d", &idxOrigem) != 1 || idxOrigem < 0 || idxOrigem >= g->quantidade) {
+        printf("Indice invalido.\n"); limparBuffer(); return;
+    }
+    printf("  Indice de destino: ");
+    if (scanf("%d", &idxDestino) != 1 || idxDestino < 0 || idxDestino >= g->quantidade) {
+        printf("Indice invalido.\n"); limparBuffer(); return;
+    }
+    limparBuffer();
+    listarTrajetos(g, g->aeroportos[idxOrigem].codigo, g->aeroportos[idxDestino].codigo);
 }
 
 /* ─── Main ─── */
@@ -95,15 +98,42 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
+    /* Aeroportos iniciais hardcoded */
+    printf("========================================\n");
+    printf("  Carregando dados iniciais...\n");
+    printf("========================================\n\n");
+
+    cadastrarAeroporto(g, "BSB", "Brasilia");
+    cadastrarAeroporto(g, "CNF", "Belo Horizonte");
+    cadastrarAeroporto(g, "GIG", "Rio de Janeiro");
+    cadastrarAeroporto(g, "GRU", "Sao Paulo");
+    cadastrarAeroporto(g, "SSA", "Salvador");
+
+    printf("\n");
+
+    cadastrarVoo(g, "BSB", "SSA", 107);
+    cadastrarVoo(g, "CNF", "GIG", 555);
+    cadastrarVoo(g, "CNF", "GRU", 101);
+    cadastrarVoo(g, "CNF", "SSA", 214);
+    cadastrarVoo(g, "GIG", "CNF", 554);
+    cadastrarVoo(g, "GIG", "GRU",  90);
+    cadastrarVoo(g, "GRU", "BSB",  50);
+    cadastrarVoo(g, "GRU", "CNF", 102);
+    cadastrarVoo(g, "GRU", "GIG",  89);
+    cadastrarVoo(g, "SSA", "CNF", 215);
+
+    printf("\n========================================\n");
+    printf("  Sistema pronto!\n");
+    printf("========================================\n\n");
+
     int opcao;
     do {
-        printf("    Sistema ANAC — Malha Aerea          \n");
         printf("________________________________________\n");
         printf("  1. Cadastrar aeroporto                \n");
         printf("  2. Cadastrar voo                      \n");
-        printf("  3. Remover voo          [a fazer]     \n");
-        printf("  4. Listar voos de aeroporto [a fazer] \n");
-        printf("  5. Listar trajetos      [a fazer]     \n");
+        printf("  3. Remover voo                        \n");
+        printf("  4. Listar voos de aeroporto           \n");
+        printf("  5. Listar trajetos                    \n");
         printf("  6. Listar todos os aeroportos         \n");
         printf("  0. Sair                               \n");
         printf("________________________________________\n");
@@ -112,7 +142,7 @@ int main(void) {
         if (scanf("%d", &opcao) != 1) {
             limparBuffer();
             opcao = -1;
-            printf(" Entrada invalida, tente novamente.\n");
+            printf("\n Entrada invalida, tente novamente.\n\n");
             continue;
         }
         limparBuffer();
@@ -125,8 +155,8 @@ int main(void) {
             case 4: menuListarVoos(g);         break;
             case 5: menuListarTrajetos(g);     break;
             case 6:
-                printf("  Aeroportos cadastrados:\n");
-                GA_listarAeroportos(g);
+                printf("  Aeroportos cadastrados:\n\n");
+                listarAeroportos(g);
                 break;
             case 0:
                 printf("Encerrando...\n");
@@ -134,6 +164,7 @@ int main(void) {
             default:
                 printf(" Opcao invalida!\n");
         }
+        printf("\n");
     } while (opcao != 0);
 
     ApagarGrafo(g);
