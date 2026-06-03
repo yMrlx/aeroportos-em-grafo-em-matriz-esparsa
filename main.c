@@ -3,22 +3,17 @@
 #include <string.h>
 #include "grafo_aeroportos.h"
 
-/* Limpa o buffer de entrada após leitura */
 static void limparBuffer(void) {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-/* Lê uma string do teclado com limite de tamanho */
 static void lerString(const char *prompt, char *destino, int tamanho) {
     printf("%s", prompt);
     if (fgets(destino, tamanho, stdin)) {
-        /* Remove o '\n' que fgets inclui */
         destino[strcspn(destino, "\n")] = '\0';
     }
 }
-
-/* ─── Funções do Menu ─── */
 
 static void menuCadastrarAeroporto(GrafoAeroportos *g) {
     char codigo[CODIGO_AEROPORTO_TAM];
@@ -90,9 +85,8 @@ static void menuListarTrajetos(GrafoAeroportos *g) {
     listarTrajetos(g, g->aeroportos[idxOrigem].codigo, g->aeroportos[idxDestino].codigo);
 }
 
-/* ─── Main ─── */
 int main(void) {
-    GrafoAeroportos *g = criarGrafo(5); /* capacidade inicial = 5 aeroportos */
+    GrafoAeroportos *g = criarGrafo(5);
     if (!g) {
         fprintf(stderr, " nao foi possivel criar o grafo.\n");
         return EXIT_FAILURE;
@@ -145,7 +139,13 @@ int main(void) {
             printf("\n Entrada invalida, tente novamente.\n\n");
             continue;
         }
-        limparBuffer();
+        int prox = getchar();
+        if (prox != '\n' && prox != EOF) {
+            limparBuffer();
+            opcao = -1;
+            printf("\n Entrada invalida, tente novamente.\n\n");
+            continue;
+        }
         printf("\n");
 
         switch (opcao) {

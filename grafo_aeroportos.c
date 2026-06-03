@@ -59,7 +59,6 @@ int cadastrarAeroporto(GrafoAeroportos *g, const char *codigo, const char *cidad
         return 0;
     }
 
-
     if (buscarIndice(g, codigo) != -1) {
         printf("Aeroporto com codigo '%s' ja cadastrado.\n", codigo);
         return 0;
@@ -98,27 +97,6 @@ int cadastrarAeroporto(GrafoAeroportos *g, const char *codigo, const char *cidad
     return 1;
 }
 
-/* ═══════════════════════════════════════════════════════════════
- * OPERAÇÃO 2 — GA_cadastrarVoo
- * ─────────────────────────────────────────────────────────────
- * RACIOCÍNIO PASSO A PASSO:
- *
- * Passo 1: Validar entradas.
- *
- * Passo 2: Buscar os ÍNDICES dos aeroportos de origem e destino.
- *          Se qualquer um não existir → erro.
- *
- * Passo 3: Verificar se o número de voo já existe em ALGUMA célula
- *          da matriz (número de voo deve ser único no sistema).
- *          Para isso, percorre todas as listas de todas as linhas.
- *
- * Passo 4: Verificar se já existe VOO nessa rota específica
- *          (origem → destino). ME_buscar retorna NULL se não existe.
- *
- * Passo 5: Alocar um struct Voo com o número do voo.
- *
- * Passo 6: Inserir na célula (idxOrigem, idxDestino) da MatrizEsparsa.
- * ═══════════════════════════════════════════════════════════════ */
 int cadastrarVoo(GrafoAeroportos *g, const char *codigoOrigem, const char *codigoDestino, int numeroVoo) {
 
     if (!g || !codigoOrigem || !codigoDestino) {
@@ -304,9 +282,6 @@ void listarTrajetos(GrafoAeroportos *g,
     dfs(g, idxOrigem, idxDestino, visitado, caminho, 0);
 }
 
-/* ═══════════════════════════════════════════════════════════════
- * GA_listarAeroportos  (auxiliar para o menu)
- * ═══════════════════════════════════════════════════════════════ */
 void listarAeroportos(GrafoAeroportos *g) {
     if (!g || g->quantidade == 0) {
         printf("  Nenhum aeroporto cadastrado.\n");
@@ -316,8 +291,8 @@ void listarAeroportos(GrafoAeroportos *g) {
     printf("  -------+-----+-----------------------------\n");
     for (int i = 0; i < g->quantidade; i++) {
         printf("  %-6d | %-3s | %s\n",
-               i,
-               g->aeroportos[i].codigo,
-               g->aeroportos[i].cidade);
+                i,
+                g->aeroportos[i].codigo,
+                g->aeroportos[i].cidade);
     }
 }
