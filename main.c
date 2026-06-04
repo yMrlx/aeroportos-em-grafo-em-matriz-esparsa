@@ -92,7 +92,6 @@ int main(void) {
         return EXIT_FAILURE;
     }
 
-    /* Aeroportos iniciais hardcoded */
     printf("========================================\n");
     printf("  Carregando dados iniciais...\n");
     printf("========================================\n\n");

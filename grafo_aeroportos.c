@@ -159,18 +159,6 @@ int cadastrarVoo(GrafoAeroportos *g, const char *codigoOrigem, const char *codig
     return 1;
 }
 
-/* ═══════════════════════════════════════════════════════════════
- * OPERAÇÃO 3 — GA_removerVoo  [A IMPLEMENTAR]
- * ─────────────────────────────────────────────────────────────
- * DICA DE IMPLEMENTAÇÃO:
- *   - Percorrer todas as linhas da matriz (loop i de 0 a quantidade)
- *   - Em cada linha, percorrer os nós com obterLinhaMatrizEsparsa
- *   - Quando encontrar o nó com voo->numero == numeroVoo:
- *       → removerMatrizEsparsa(g->voos, i, no->coluna)  retorna o Voo*
- *       → free(voo) para liberar a memória
- *       → retornar 1 (sucesso)
- *   - Se não encontrar em nenhuma linha: retornar 0
- * ═══════════════════════════════════════════════════════════════ */
 int removerVoo(GrafoAeroportos *g, int numeroVoo) {
     if (!g) return 0;
 
@@ -195,17 +183,6 @@ int removerVoo(GrafoAeroportos *g, int numeroVoo) {
     return 0;
 }
 
-/* ═══════════════════════════════════════════════════════════════
- * OPERAÇÃO 4 — GA_listarVoosDeAeroporto  [A IMPLEMENTAR]
- * ─────────────────────────────────────────────────────────────
- * DICA DE IMPLEMENTAÇÃO:
- *   - GA_buscarIndice para achar o índice do aeroporto
- *   - ME_obterLinha(g->voos, idx) retorna a lista de voos
- *   - Para cada nó na lista:
- *       → no->coluna é o índice do aeroporto destino
- *       → g->aeroportos[no->coluna].cidade é o nome da cidade
- *       → ((Voo*)no->dado)->numero é o número do voo
- * ═══════════════════════════════════════════════════════════════ */
 void listarVoosDeAeroporto(GrafoAeroportos *g, const char *codigoOrigem) {
     if (!g || !codigoOrigem) return;
 

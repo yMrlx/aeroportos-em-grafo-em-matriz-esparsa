@@ -22,7 +22,6 @@ typedef struct {
     MatrizEsparsa *voos;      
 } GrafoAeroportos;
 
-
 GrafoAeroportos *criarGrafo(int capacidadeInicial);
 
 void ApagarGrafo(GrafoAeroportos *g);
